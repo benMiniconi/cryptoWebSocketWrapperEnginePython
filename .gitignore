@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.DS_Store
+.idea/.gitignore
+.idea/BTCOptionsWrapper.iml
+.idea/aws.xml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/rSettings.xml
+.idea/vcs.xml
