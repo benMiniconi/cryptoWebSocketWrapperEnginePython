@@ -26,7 +26,7 @@ msg = {
 def cleanAssetName(rawAssetName):
     rawAssetNameClean = rawAssetName.replace("/", "_")
     rawAssetNameClean = rawAssetNameClean.replace("XBT", "btc")
-    return rawAssetName.lower()
+    return rawAssetNameClean.lower()
 
 def prepareJson(rawDeribitJson):
     if  type(rawDeribitJson) == list and len(rawDeribitJson) > 1:

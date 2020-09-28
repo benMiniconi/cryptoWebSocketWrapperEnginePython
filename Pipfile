@@ -9,9 +9,9 @@ verify_ssl = true
 pandas = "*"
 numpy = "*"
 asyncio = "*"
-cbpro = "*"
-copra = "*"
 moment = "*"
+google-cloud-bigquery = "*"
+pandas-gbq = "*"
 
 [requires]
 python_version = "3.7"
