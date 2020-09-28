@@ -2,7 +2,7 @@ import csv
 import os
 from os import path
 
-csv_columns = ["Plateforme", "Asset", "Quote", "Datetime"]
+csv_columns = ["Plateforme", "Asset", "Quote", "Datetime", "Bid", "BidAmount", "Ask", "AskAmount", "OpenInterest"]
 
 def writeQuote(csv_file, quotes):
     if path.exists(csv_file):

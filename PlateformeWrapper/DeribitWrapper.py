@@ -19,30 +19,20 @@ msgforEth =  {"jsonrpc": "2.0",
      "params": {
          "instrument_name": "ETH-PERPETUAL"}
 }
-msgSuscribeToBTCUSD = \
-    {
-        "jsonrpc": "2.0",
-        "id": 42,
-        "method": "public/subscribe",
-        "params": {
-            "channels": [
-                "ticker.ETH_PERPETRUAL.raw",
-            ]
-        }
-    }
+msgSuscribeToBTCUSD = {"jsonrpc": "2.0",
+     "method": "public/subscribe",
+     "id": 42,
+     "params": {
+         "channels": ["ticker.BTC-PERPETUAL.raw"]}
+     }
 
 
-msgSuscribeToETHUSD = \
-    {
-        "jsonrpc": "2.0",
-        "id": 42,
-        "method": "public/subscribe",
-        "params": {
-            "channels": [
-                "ticker.BTC_PERPETRUAL.raw",
-            ]
-        }
-    }
+msgSuscribeToETHUSD = {"jsonrpc": "2.0",
+     "method": "public/subscribe",
+     "id": 42,
+     "params": {
+         "channels": ["ticker.ETH-PERPETUAL.raw"]}
+     }
 
 
 hearbeat = \
@@ -66,50 +56,52 @@ getInstruments = {
   }}
 
 websocket = ""
-
-async def setHeartbeat():
-    asyncio.get_event_loop().run_until_complete(call_api(json.dumps(hearbeat)))
-    return "OK"
+buffer = []
 
 
-async def startTunnel():
-    asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
-    return "OK"
-
-
-async def subscribeToBTCUSDCall():
-    return "OK"
-
-
-
+def cleanAssetName(rawAssetName):
+    rawAssetNameClean = rawAssetName.replace("-", "_")
+    rawAssetNameClean = rawAssetNameClean.replace("PERPETUAL", "USD")
+    return rawAssetNameClean.lower()
 
 def prepareJson(rawDeribitJson):
     if "params" in rawDeribitJson.keys():
         data = rawDeribitJson["params"]["data"]
-        quote = [ {"Plateforme": "Deribit", "Asset": data["index_name"], "Quote": data["price"], "Datetime": int(data["timestamp"])/1000 }]
+        cleanName = cleanAssetName(data["instrument_name"])
+        quote = {"Plateforme": "Deribit", "Asset": cleanName, "Quote": data["index_price"], "Datetime": int(data["timestamp"])/1000, "Bid": data["best_bid_price"], "BidAmount": data["best_bid_amount"], "Ask":  data["best_ask_price"], "AskAmount": data["best_ask_amount"], "OpenInterest": data["open_interest"]}
         return quote
 
-def prepareJsonForBQ(rawDeribitJson):
-    if "params" in rawDeribitJson.keys():
-        data = rawDeribitJson["params"]["data"]
-        quote = [ {"Plateforme": ["Deribit"], "Asset": [data["index_name"]], "Quote": [data["price"]], "Datetime": [int(data["timestamp"])/1000] }]
-        return quote
+
+def manageBuffer(quote):
+    if quote:
+        buffer.append(quote)
+        if len(buffer) >= 1000:
+            WBQ.writeQuotes(buffer, "deribit")
+            emptyBuffer()
+            return True
+        else:
+            return False
+
+
+def emptyBuffer():
+    global buffer
+    buffer = []
 
 
 async def call_api(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
-    async with websockets.connect('wss://test.deribit.com/ws/api/v2') as websocket:
+    async with websockets.connect('wss://www.deribit.com/ws/api/v2', ping_interval=None) as websocket:
         await websocket.send(msgSuscribeToBTCUSD)
         await websocket.send(msgSuscribeToETHUSD)
         while websocket.open:
             #await websocket.send(suscribeToBTCUSD)
             response = await websocket.recv()
             response_json = json.loads(response)
-            print(response_json)
+            #print(response_json)
             csv_file = "crypto"+"Deribit"+moment.now().format("DDMMYYYY")+".csv"
             quote = prepareJson(response_json)
-            quoteBQ = prepareJsonForBQ(response_json)
-            if quoteBQ: WBQ.writeQuotes(quoteBQ, "deribit")
-            if quote: csvWriter.writeQuote(csv_file, quote)
+            if quote: csvWriter.writeQuote(csv_file, [quote])
+            manageBuffer(quote)
+
 
 
 asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))

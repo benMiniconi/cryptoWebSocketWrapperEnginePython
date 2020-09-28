@@ -26,8 +26,8 @@ def implicit():
 
 def writeQuotes(jsonToWrite, plateforme):
     df = pd.DataFrame(jsonToWrite)
-    job = pandas_gbq.to_gbq(df, "crytpoQuotes"+plateforme, project_id="heartbeat-001", if_exists="append")
-    print(job)
+    job = pandas_gbq.to_gbq(df, "crytpoQuotes."+plateforme, project_id="heartbeat-001", if_exists="append")
+
 
 
 #implicit()
