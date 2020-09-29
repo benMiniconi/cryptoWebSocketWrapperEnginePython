@@ -38,7 +38,7 @@ msg = {
 def manageBuffer(quote):
     if quote:
         bufferCoinbase.append(quote)
-        if len(bufferCoinbase) >= 1000:
+        if len(bufferCoinbase) >= 300:
             WBQ.writeQuotes(bufferCoinbase, "coinbase")
             emptyBuffer()
             return True
@@ -61,7 +61,7 @@ def prepareJson(rawDeribitJson):
         data = rawDeribitJson
         asset = cleanAssetName(data['product_id'])
         timesta = datetime.datetime.now().timestamp()
-        quote = {"Plateforme": "Coinbase", "Asset": asset, "Quote": data["price"], "Datetime": timesta , "Bid": float(data["best_bid"]), "BidAmount": 0, "Ask":  float(data["best_ask"]), "AskAmount": 0, "OpenInterest": float(data["open_24h"])}
+        quote = {"Plateforme": "Coinbase", "Asset": asset, "Quote": float(data["price"]), "Datetime": timesta , "Bid": float(data["best_bid"]), "BidAmount": 0, "Ask":  float(data["best_ask"]), "AskAmount": 0, "OpenInterest": float(data["open_24h"])}
         return quote
 
 

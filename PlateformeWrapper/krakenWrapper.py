@@ -50,7 +50,7 @@ def prepareJson(rawDeribitJson):
 def manageBuffer(quote):
     if quote:
         bufferKraken.append(quote)
-        if len(bufferKraken) >= 1000:
+        if len(bufferKraken) >= 300:
             WBQ.writeQuotes(bufferKraken, "kraken")
             emptyBuffer()
             return True

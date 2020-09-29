@@ -75,7 +75,7 @@ def prepareJson(rawDeribitJson):
 def manageBuffer(quote):
     if quote:
         buffer.append(quote)
-        if len(buffer) >= 1000:
+        if len(buffer) >= 300:
             WBQ.writeQuotes(buffer, "deribit")
             emptyBuffer()
             return True
