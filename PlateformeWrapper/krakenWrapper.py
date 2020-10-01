@@ -7,8 +7,8 @@ import CsvWritter.QuoteCsvWriter as csvWriter
 from Bigquery import WrapperBigQuery as WBQ
 
 websocketKraken = ""
+websocketKraken2 = ""
 bufferKraken = []
-
 
 # for i in range(3):
 # 	try:
@@ -42,8 +42,9 @@ def prepareJson(rawDeribitJson):
         data = rawDeribitJson[1]
         asset = cleanAssetName(rawDeribitJson[3])
         quote = {"Plateforme": "Kraken", "Asset": asset, "Quote": float(data["c"][0]),
-                  "Datetime": datetime.datetime.now().timestamp(), "Bid": float(data["b"][0]), "BidAmount": float(data["b"][2]),
-                  "Ask": float(data["a"][0]), "AskAmount": float(data["a"][2]), "OpenInterest": float(data["p"][0])}
+                 "Datetime": datetime.datetime.now().timestamp(), "Bid": float(data["b"][0]),
+                 "BidAmount": float(data["b"][2]),
+                 "Ask": float(data["a"][0]), "AskAmount": float(data["a"][2]), "OpenInterest": float(data["p"][0])}
         return quote
 
 
@@ -62,18 +63,59 @@ def emptyBuffer():
     global bufferKraken
     bufferKraken = []
 
+
+async def manageAnswer(Wsocket, plateforme):
+    response = await Wsocket.recv()
+    response_json = json.loads(response)
+    # response_json
+    csv_file = "crypto" + plateforme + moment.now().format("DDMMYYYY") + ".csv"
+    quote = prepareJson(response_json)
+    if quote: csvWriter.writeQuote(csv_file, [quote])
+    manageBuffer(quote)
+
+
+async def reconnect(msg):
+    async with websockets.connect('wss://ws.kraken.com', ping_interval=None) as websocketKraken2:
+        print(msg)
+        await websocketKraken2.send(msg)
+        while websocketKraken2.open:
+            # await websocket.send(suscribeToBTCUSD)
+            try:
+                await manageAnswer(websocketKraken2, "Coinbase")
+            except websockets.exceptions.ConnectionClosedOK:
+                print("ConnectionClosedOK")
+                await asyncio.sleep(60)
+                await call_api(msg)
+            except websockets.exceptions.ConnectionClosedError:
+                print("ConnectionClosedError")
+                await asyncio.sleep(60)
+                await call_api(msg)
+            except websockets.exceptions.ConnectionClosed:
+                print("ConnectionClosedOK")
+                await asyncio.sleep(60)
+                await call_api(msg)
+
+
 async def call_api(msg):
     async with websockets.connect('wss://ws.kraken.com', ping_interval=None) as websocketKraken:
         print(msg)
         await websocketKraken.send(msg)
         while websocketKraken.open:
             # await websocket.send(suscribeToBTCUSD)
-            response = await websocketKraken.recv()
-            response_json = json.loads(response)
-            csv_file = "crypto" + "Kraken" + moment.now().format("DDMMYYYY") + ".csv"
-            quote = prepareJson(response_json)
-            if quote: csvWriter.writeQuote(csv_file, [quote])
-            manageBuffer(quote)
+            try:
+                await manageAnswer(websocketKraken, "Coinbase", )
+            except websockets.exceptions.ConnectionClosedOK:
+                print("ConnectionClosedOK")
+                await asyncio.sleep(60)
+                await reconnect(msg)
+            except websockets.exceptions.ConnectionClosedError:
+                print("ConnectionClosedError")
+                await asyncio.sleep(60)
+                await reconnect(msg)
+            except websockets.exceptions.ConnectionClosed:
+                print("ConnectionClosedOK")
+                await asyncio.sleep(60)
+                await reconnect(msg)
 
 
 asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))

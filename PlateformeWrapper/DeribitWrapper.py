@@ -91,6 +91,15 @@ def emptyBuffer():
     buffer = []
 
 
+async def manageAnswer(wSocket):
+    response = await wSocket.recv()
+    response_json = json.loads(response)
+    csv_file = "crypto" + "Deribit" + moment.now().format("DDMMYYYY") + ".csv"
+    quote = prepareJson(response_json)
+    if quote: csvWriter.writeQuote(csv_file, [quote])
+    manageBuffer(quote)
+
+
 async def reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
     print("in reconnect")
     global websocket
@@ -102,26 +111,18 @@ async def reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
         while websocket2.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                response = await websocket2.recv()
-                response_json = json.loads(response)
-                #print("reconnect message.recv")
-                # print(response_json)
-                csv_file = "crypto" + "Deribit" + moment.now().format("DDMMYYYY") + ".csv"
-                quote = prepareJson(response_json)
-
-                if quote: csvWriter.writeQuote(csv_file, [quote])
-                manageBuffer(quote)
+                await manageAnswer(websocket2)
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
             except websockets.exceptions.ConnectionClosedError:
                 print("ConnectionClosedError")
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
             except websockets.exceptions.ConnectionClosed:
                 print("ConnectionClosedOK")
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
 
 
@@ -129,33 +130,27 @@ async def call_api(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
     global websocket2
     websocket2 = ""
     async with websockets.connect('wss://www.deribit.com/ws/api/v2', ping_interval=None) as websocket:
-        print("after connection", websocket2)
+        print("after connection", websocket)
         await websocket.send(msgSuscribeToBTCUSD)
         await websocket.send(msgSuscribeToETHUSD)
         while websocket.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                response = await websocket.recv()
-                response_json = json.loads(response)
-                # print(response_json)
-                csv_file = "crypto" + "Deribit" + moment.now().format("DDMMYYYY") + ".csv"
-                quote = prepareJson(response_json)
-                if quote: csvWriter.writeQuote(csv_file, [quote])
-                manageBuffer(quote)
+                await manageAnswer(websocket)
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
                 await websocket.close_connection()
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
             except websockets.exceptions.ConnectionClosedError:
                 print("ConnectionClosedError")
                 await websocket.close_connection()
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
             except websockets.exceptions.ConnectionClosed:
                 await websocket.close_connection()
                 print("ConnectionClosedOK")
-                await asyncio.sleep(3)
+                await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
 
 
