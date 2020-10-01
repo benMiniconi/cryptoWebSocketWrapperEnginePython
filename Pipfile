@@ -12,6 +12,8 @@ asyncio = "*"
 moment = "*"
 google-cloud-bigquery = "*"
 pandas-gbq = "*"
+flask = "*"
+django = "*"
 
 [requires]
 python_version = "3.7"

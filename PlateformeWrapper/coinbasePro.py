@@ -7,21 +7,7 @@ import datetime
 import CsvWritter.QuoteCsvWriter as csvWriter
 from Bigquery import WrapperBigQuery as WBQ
 
-#
-# from copra.websocket import Channel, Client
-#
-# loop = asyncio.get_event_loop()
-#
-# ws = Client(loop, Channel('heartbeat', 'BTC-USD'))
-#
-# try:
-#     loop.run_forever()
-# except KeyboardInterrupt:
-#     loop.run_until_complete(ws.close())
-#     loop.close()
-
 websocketCoin = ""
-websocketCoin2 = ""
 bufferCoinbase = []
 
 msg = {
@@ -46,6 +32,13 @@ def manageBuffer(quote):
         else:
             return False
 
+
+def websocketStatus():
+    global websocketCoin
+    if(isinstance(websocketCoin, websockets.WebSocketClientProtocol)):
+        return str(websocketCoin.open)
+    else:
+        return "Not a websocket yet"
 
 def emptyBuffer():
     global bufferCoinbase
@@ -80,14 +73,14 @@ async def manageAnswer(Wsocket):
 
 
 async def reconnect(msg):
-    async with websockets.connect('wss://ws-feed.pro.coinbase.com') as websocketCoin2:
+    async with websockets.connect('wss://ws-feed.pro.coinbase.com') as websocketCoin:
         print(msg)
-        await websocketCoin2.send(msg)
+        await websocketCoin.send(msg)
 
-        while websocketCoin2.open:
+        while websocketCoin.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                await manageAnswer(websocketCoin2)
+                await manageAnswer(websocketCoin)
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
                 await asyncio.sleep(60)
@@ -125,4 +118,10 @@ async def call_api(msg):
                 await reconnect(msg)
 
 
-asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
+#asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
+
+def runWebSocket(loop):
+ #asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+# asyncio.run(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(call_api(json.dumps(msg)))

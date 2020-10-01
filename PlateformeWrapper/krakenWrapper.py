@@ -21,13 +21,8 @@ bufferKraken = []
 
 msg = {
     "event": "subscribe",
-    # "event": "ping",
     "pair": ["XBT/USD", "XBT/EUR", "ETH/USD", "ETH/EUR"],
     "subscription": {"name": "ticker"}
-    # "subscription": {"name": "spread"}
-    # "subscription": {"name": "trade"}
-    # "subscription": {"name": "book", "depth": 10}
-    # "subscription": {"name": "ohlc", "interval": 5}
 }
 
 
@@ -59,6 +54,14 @@ def manageBuffer(quote):
             return False
 
 
+def websocketStatus():
+    global websocketKraken
+    if(isinstance(websocketKraken, websockets.WebSocketClientProtocol)):
+        return str(websocketKraken.open)
+    else:
+        return "Not a websocket yet"
+
+
 def emptyBuffer():
     global bufferKraken
     bufferKraken = []
@@ -75,13 +78,13 @@ async def manageAnswer(Wsocket, plateforme):
 
 
 async def reconnect(msg):
-    async with websockets.connect('wss://ws.kraken.com', ping_interval=None) as websocketKraken2:
+    async with websockets.connect('wss://ws.kraken.com', ping_interval=None) as websocketKraken:
         print(msg)
-        await websocketKraken2.send(msg)
-        while websocketKraken2.open:
+        await websocketKraken.send(msg)
+        while websocketKraken.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                await manageAnswer(websocketKraken2, "Coinbase")
+                await manageAnswer(websocketKraken, "Kraken")
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
                 await asyncio.sleep(60)
@@ -103,7 +106,7 @@ async def call_api(msg):
         while websocketKraken.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                await manageAnswer(websocketKraken, "Coinbase", )
+                await manageAnswer(websocketKraken, "Kraken", )
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
                 await asyncio.sleep(60)
@@ -118,4 +121,10 @@ async def call_api(msg):
                 await reconnect(msg)
 
 
-asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
+#asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
+
+def runWebSocket(loop):
+ #asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+# asyncio.run(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(call_api(json.dumps(msg)))

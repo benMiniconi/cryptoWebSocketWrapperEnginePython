@@ -86,6 +86,14 @@ def manageBuffer(quote):
             return False
 
 
+def websocketStatus():
+    global websocket
+    if(isinstance(websocket, websockets.WebSocketClientProtocol)):
+        return str(websocket.open)
+    else:
+        return "Not a websocket yet"
+
+
 def emptyBuffer():
     global buffer
     buffer = []
@@ -104,14 +112,14 @@ async def reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
     print("in reconnect")
     global websocket
     websocket = ""
-    async with websockets.connect('wss://www.deribit.com/ws/api/v2', ping_interval=None) as websocket2:
+    async with websockets.connect('wss://www.deribit.com/ws/api/v2', ping_interval=None) as websocket:
         print("after re-connection", websocket2)
-        await websocket2.send(msgSuscribeToBTCUSD)
-        await websocket2.send(msgSuscribeToETHUSD)
-        while websocket2.open:
+        await websocket.send(msgSuscribeToBTCUSD)
+        await websocket.send(msgSuscribeToETHUSD)
+        while websocket.open:
             # await websocket.send(suscribeToBTCUSD)
             try:
-                await manageAnswer(websocket2)
+                await manageAnswer(websocket)
             except websockets.exceptions.ConnectionClosedOK:
                 print("ConnectionClosedOK")
                 await asyncio.sleep(60)
@@ -127,8 +135,8 @@ async def reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
 
 
 async def call_api(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
-    global websocket2
-    websocket2 = ""
+    global websocket
+    websocket = ""
     async with websockets.connect('wss://www.deribit.com/ws/api/v2', ping_interval=None) as websocket:
         print("after connection", websocket)
         await websocket.send(msgSuscribeToBTCUSD)
@@ -153,6 +161,8 @@ async def call_api(msgSuscribeToBTCUSD, msgSuscribeToETHUSD):
                 await asyncio.sleep(60)
                 await reconnect(msgSuscribeToBTCUSD, msgSuscribeToETHUSD)
 
-
-asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+def runWebSocket(loop):
+ #asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
 # asyncio.run(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
