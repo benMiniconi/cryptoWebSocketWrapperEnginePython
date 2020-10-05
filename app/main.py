@@ -1,6 +1,7 @@
 import PlateformeWrapper.DeribitWrapper as deribit
 import PlateformeWrapper.coinbasePro as coinbase
 import PlateformeWrapper.krakenWrapper as kraken
+import Bigquery.WrapperBigQuery as wbq
 import asyncio
 import json
 
@@ -29,6 +30,16 @@ def krakenWSStatus():
 @app.route('/coinbasestatus')
 def coinbaseWSStatus():
     return coinbase.websocketStatus()
+
+@app.route('/get_all_statuts')
+def getAllStatuts():
+    return {"coinbase": coinbase.websocketStatus(), "kraken": kraken.websocketStatus(), "deribit": deribit.websocketStatus()}
+
+
+@app.route('/get_latest_quotes')
+def getlatestQuotes():
+    return wbq.latestQuotes()
+
 
 
 @app.route('/deribitrunsocket')

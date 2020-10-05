@@ -33,5 +33,49 @@ def writeQuotes(jsonToWrite, plateforme):
     job = pandas_gbq.to_gbq(df, "crytpoQuotes."+plateforme, project_id="heartbeat-001", if_exists="append", credentials=credentials)
 
 
-
+def latestQuotes():
+    sql = """
+        (SELECT 
+        kraken.Quote AS Quote,
+        kraken.Asset as asset,  
+        kraken.Plateforme as plateforme, 
+        TIMESTAMP_SECONDS(CAST(kraken.Datetime as INT64)) AS datetime,  
+        from `crytpoQuotes.kraken`  as kraken
+        WHERE kraken.Datetime > 1601535890 
+        and kraken.Asset is not null 
+        and kraken.Datetime is not null 
+        and kraken.Datetime  > 1601535890
+        ORDER BY kraken.Datetime DESC
+        LIMIT 1)
+        UNION DISTINCT
+        (
+        SELECT 
+        deribit.Quote AS Quote,
+        deribit.Asset as asset,  
+        deribit.Plateforme as plateforme, 
+        TIMESTAMP_SECONDS(CAST(deribit.Datetime as INT64)) AS datetime,  
+        FROM `crytpoQuotes.deribit`  as deribit
+        WHERE deribit.Datetime > 1601535890 
+        and deribit.Asset is not null 
+        and deribit.Datetime is not null 
+        and deribit.Datetime  > 1601535890
+        ORDER BY deribit.Datetime DESC
+        LIMIT 1)
+        UNION DISTINCT
+        (
+        SELECT 
+        coinbase.Quote AS Quote,
+        coinbase.Asset as asset,  
+        coinbase.Plateforme as plateforme, 
+        TIMESTAMP_SECONDS(CAST(coinbase.Datetime as INT64)) AS datetime,  
+        FROM `crytpoQuotes.coinbase`  as coinbase
+        WHERE coinbase.Datetime > 1601535890 
+        and coinbase.Asset is not null 
+        and coinbase.Datetime is not null 
+        and coinbase.Datetime  > 1601535890
+        ORDER BY coinbase.Datetime DESC
+        LIMIT 1)
+        """
+    job = pandas_gbq.read_gbq(sql, project_id="heartbeat-001", credentials=credentials)
+    return job.to_json(orient="records")
 #implicit()
