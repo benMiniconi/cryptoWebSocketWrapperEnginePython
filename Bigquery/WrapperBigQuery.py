@@ -1,8 +1,12 @@
 from google.cloud import bigquery
+from google.oauth2 import service_account
+
 import pandas as pd
 import pandas_gbq
 
-
+credentials = service_account.Credentials.from_service_account_file(
+    'heartbeat-001-f88870825bf4.json',
+)
 def implicit():
     # If you don't specify credentials when constructing the client, the
     # client library will look for credentials in the environment.
@@ -26,7 +30,7 @@ def implicit():
 
 def writeQuotes(jsonToWrite, plateforme):
     df = pd.DataFrame(jsonToWrite)
-    job = pandas_gbq.to_gbq(df, "crytpoQuotes."+plateforme, project_id="heartbeat-001", if_exists="append")
+    job = pandas_gbq.to_gbq(df, "crytpoQuotes."+plateforme, project_id="heartbeat-001", if_exists="append", credentials=credentials)
 
 
 
