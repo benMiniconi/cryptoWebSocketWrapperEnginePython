@@ -3,7 +3,7 @@ import websockets
 import asyncio
 import moment
 import datetime
-import CsvWritter.QuoteCsvWriter as csvWriter
+import CsvWrapper.QuoteCsvWriter as csvWriter
 from Bigquery import WrapperBigQuery as WBQ
 
 websocketKraken = ""

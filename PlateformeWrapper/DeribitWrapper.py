@@ -3,7 +3,7 @@ import websockets
 import json
 import moment
 import Bigquery.WrapperBigQuery as WBQ
-import CsvWritter.QuoteCsvWriter as csvWriter
+import CsvWrapper.QuoteCsvWriter as csvWriter
 
 msg = \
     {"jsonrpc": "2.0",

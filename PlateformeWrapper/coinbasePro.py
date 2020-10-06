@@ -4,7 +4,7 @@ import websockets
 import json
 import moment
 import datetime
-import CsvWritter.QuoteCsvWriter as csvWriter
+import CsvWrapper.QuoteCsvWriter as csvWriter
 from Bigquery import WrapperBigQuery as WBQ
 
 websocketCoin = ""
@@ -35,10 +35,11 @@ def manageBuffer(quote):
 
 def websocketStatus():
     global websocketCoin
-    if(isinstance(websocketCoin, websockets.WebSocketClientProtocol)):
+    if (isinstance(websocketCoin, websockets.WebSocketClientProtocol)):
         return str(websocketCoin.open)
     else:
         return "Not a websocket yet"
+
 
 def emptyBuffer():
     global bufferCoinbase
@@ -118,10 +119,10 @@ async def call_api(msg):
                 await reconnect(msg)
 
 
-#asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
+# asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msg)))
 
 def runWebSocket(loop):
- #asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
-# asyncio.run(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+    # asyncio.get_event_loop().run_until_complete(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
+    # asyncio.run(call_api(json.dumps(msgSuscribeToBTCUSD), json.dumps(msgSuscribeToETHUSD)))
     asyncio.set_event_loop(loop)
     loop.run_until_complete(call_api(json.dumps(msg)))

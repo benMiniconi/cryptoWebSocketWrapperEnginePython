@@ -2,10 +2,11 @@ import PlateformeWrapper.DeribitWrapper as deribit
 import PlateformeWrapper.coinbasePro as coinbase
 import PlateformeWrapper.krakenWrapper as kraken
 import Bigquery.WrapperBigQuery as wbq
+import CsvWrapper.CSVReader as csv
 import asyncio
 import json
 
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -31,15 +32,27 @@ def krakenWSStatus():
 def coinbaseWSStatus():
     return coinbase.websocketStatus()
 
+
 @app.route('/get_all_statuts')
 def getAllStatuts():
-    return {"coinbase": coinbase.websocketStatus(), "kraken": kraken.websocketStatus(), "deribit": deribit.websocketStatus()}
+    return {"coinbase": coinbase.websocketStatus(), "kraken": kraken.websocketStatus(),
+            "deribit": deribit.websocketStatus()}
 
 
 @app.route('/get_latest_quotes')
-def getlatestQuotes():
-    return wbq.latestQuotes()
+def getlatestQuotesBuffer():
+    response = csv.latestQuotes()
+    if "no file" in response.Plateforme.values:
+        print("big query")
+        return wbq.latestQuotes()
+    else:
+        return response.to_json(orient="records")
 
+
+@app.route('/get_latest_quotes_from_csvs')
+def getlatestQuotesFromCSV():
+    plateforme = request.args.get('plateforme')
+    return csv.getLatestQuoteFromCsv(plateforme)
 
 
 @app.route('/deribitrunsocket')
