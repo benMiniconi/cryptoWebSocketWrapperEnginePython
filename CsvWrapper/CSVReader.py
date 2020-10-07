@@ -12,7 +12,7 @@ def getLatestQuoteFromCsv(plateforme=None):
         return frame.tail(1).to_json(orient="records")
     else:
         response = {}
-        response[plateforme] = "no file"
+        response["Plateforme"] = "no file"
         return json.dumps([response])
 
 
