@@ -1,0 +1,2 @@
+def bridgeRequest():
+    return "ok"

@@ -4,6 +4,7 @@ import PlateformeWrapper.krakenWrapper as kraken
 import Bigquery.WrapperBigQuery as wbq
 import CsvWrapper.CSVReader as csv
 import asyncio
+import requests
 import json
 
 from flask import Flask, request
@@ -16,6 +17,13 @@ loop = asyncio.get_event_loop()
 @app.route('/')
 def hello_worls():
     return "Hello Guys! "
+
+@app.route('/gsheetFromRows',  methods = ['POST', "GET"])
+def treatRowsRequest():
+    params = request.json
+    r = requests.post("https://script.google.com/macros/s/AKfycbzt4pCzmNowywEPK-ZMi4CfdrM8-MpbQGZ99VLPS26ArW6I6p96hNqg1mC8s4V2mnRQ/exec", json=params)
+    print(r.json())
+    return r.json()
 
 
 @app.route('/deribitstatus')
