@@ -11,19 +11,22 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-loop = asyncio.get_event_loop()
+#loop = asyncio.get_event_loop()
 
 
 @app.route('/')
 def hello_worls():
     return "Hello Guys! "
 
+
 @app.route('/gsheetFromRows',  methods = ['POST', "GET"])
 def treatRowsRequest():
     params = request.json
+    print("params", params)
     r = requests.post("https://script.google.com/macros/s/AKfycbzt4pCzmNowywEPK-ZMi4CfdrM8-MpbQGZ99VLPS26ArW6I6p96hNqg1mC8s4V2mnRQ/exec", json=params)
-    print(r.json())
-    return r.json()
+    reponse = r.json()
+    print(reponse["postData"])
+    return reponse['postData']
 
 
 @app.route('/deribitstatus')
